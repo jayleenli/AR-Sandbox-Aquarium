@@ -27,7 +27,9 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -201,6 +203,22 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             popup.show();
           }
         });
+
+    Button closeOpenButton = findViewById(R.id.close_open_button);
+    LinearLayout objectMenu = findViewById(R.id.object_menu);
+    closeOpenButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                if (closeOpenButton.getText() == "▲") {
+                  closeOpenButton.setText("▼");
+                  objectMenu.setVisibility(View.VISIBLE);
+                } else {
+                  closeOpenButton.setText("▲");
+                  objectMenu.setVisibility(View.GONE);
+                }
+              }
+            });
   }
 
   /** Menu button to launch feature specific settings. */

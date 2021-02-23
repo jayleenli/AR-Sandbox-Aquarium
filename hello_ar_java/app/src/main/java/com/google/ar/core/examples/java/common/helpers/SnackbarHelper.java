@@ -16,8 +16,14 @@
 package com.google.ar.core.examples.java.common.helpers;
 
 import android.app.Activity;
+import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -94,6 +100,7 @@ public final class SnackbarHelper {
    */
   public void setParentView(View snackbarView) {
     this.snackbarView = snackbarView;
+
   }
 
   private void show(
@@ -110,6 +117,11 @@ public final class SnackbarHelper {
                     message,
                     Snackbar.LENGTH_INDEFINITE);
             messageSnackbar.getView().setBackgroundColor(BACKGROUND_COLOR);
+            View view = messageSnackbar.getView();
+            FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)view.getLayoutParams();
+            params.gravity = Gravity.TOP;
+            view.setLayoutParams(params);
+
             if (dismissBehavior != DismissBehavior.HIDE) {
               messageSnackbar.setAction(
                   "Dismiss",
