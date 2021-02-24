@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.ar.core.examples.java.helloar;
+package com.google.ar.core.examples.java.arsandboxaquarium;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.media.Image;
 import android.opengl.GLES30;
@@ -24,6 +25,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,6 +33,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -88,9 +91,9 @@ import java.util.List;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+public class ArSandboxMainActivity extends AppCompatActivity implements SampleRender.Renderer {
 
-  private static final String TAG = HelloArActivity.class.getSimpleName();
+  private static final String TAG = ArSandboxMainActivity.class.getSimpleName();
 
   private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
   private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -194,16 +197,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     instantPlacementSettings.onCreate(this);
     ImageButton settingsButton = findViewById(R.id.settings_button);
     settingsButton.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            PopupMenu popup = new PopupMenu(HelloArActivity.this, v);
-            popup.setOnMenuItemClickListener(HelloArActivity.this::settingsMenuClick);
-            popup.inflate(R.menu.settings_menu);
-            popup.show();
-          }
-        });
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(ArSandboxMainActivity.this, v);
+                popup.setOnMenuItemClickListener(ArSandboxMainActivity.this::settingsMenuClick);
+                popup.inflate(R.menu.settings_menu);
+                popup.show();
+              }
+            });
 
+    //Open and Close menu
     Button closeOpenButton = findViewById(R.id.close_open_button);
     LinearLayout objectMenu = findViewById(R.id.object_menu);
     closeOpenButton.setOnClickListener(
@@ -219,6 +223,23 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 }
               }
             });
+
+    //Open the Camera for object creation
+    Button createButton = findViewById(R.id.create_button);
+    createButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                openCameraActivity();
+              }
+            });
+
+  }
+
+//Open Camera Activity
+  public void openCameraActivity() {
+    Intent intent = new Intent(this, CameraActivity.class);
+    startActivity(intent);
   }
 
   /** Menu button to launch feature specific settings. */
