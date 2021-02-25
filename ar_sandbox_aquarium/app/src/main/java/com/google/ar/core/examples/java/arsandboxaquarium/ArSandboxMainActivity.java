@@ -79,6 +79,8 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -158,8 +160,12 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
   private long lastPointCloudTimestamp = 0;
 
   // Virtual object (ARCore pawn)
-  private Mesh virtualObjectMesh;
-  private Shader virtualObjectShader;
+  //private Mesh virtualObjectMesh;
+  //private Shader virtualObjectShader;
+  //ArrayList of objects
+  private ArrayList<Mesh> virtualObjectMeshes = new ArrayList<>();
+  private ArrayList<Texture> virtualObjectTextures = new ArrayList<>();
+  private ArrayList<Shader> virtualObjectShaders = new ArrayList<>();
   private final ArrayList<Anchor> anchors = new ArrayList<>();
 
   // Environmental HDR
@@ -431,36 +437,102 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
           new Mesh(
               render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-      // Virtual object to render (ARCore pawn)
-      Texture virtualObjectAlbedoTexture =
-          Texture.createFromAsset(
-              render,
-              "models/pawn_albedo.png",
-              Texture.WrapMode.CLAMP_TO_EDGE,
-              Texture.ColorFormat.SRGB);
-      Texture virtualObjectPbrTexture =
-          Texture.createFromAsset(
-              render,
-              "models/pawn_roughness_metallic_ao.png",
-              Texture.WrapMode.CLAMP_TO_EDGE,
-              Texture.ColorFormat.LINEAR);
-      virtualObjectMesh = Mesh.createFromAsset(render, "models/pawn.obj");
-      virtualObjectShader =
-          Shader.createFromAssets(
-                  render,
-                  "shaders/environmental_hdr.vert",
-                  "shaders/environmental_hdr.frag",
-                  /*defines=*/ new HashMap<String, String>() {
-                    {
-                      put(
-                          "NUMBER_OF_MIPMAP_LEVELS",
-                          Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
-                    }
-                  })
-              .setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
-              .setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
-              .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
-              .setTexture("u_DfgTexture", dfgTexture);
+//      // Virtual object to render (ARCore pawn)
+//      Texture virtualObjectAlbedoTexture =
+//          Texture.createFromAsset(
+//              render,
+//              "models/pawn.png",
+//              Texture.WrapMode.CLAMP_TO_EDGE,
+//              Texture.ColorFormat.SRGB);
+//      Texture virtualObjectPbrTexture =
+//          Texture.createFromAsset(
+//                  render,
+//                  "models/pawn_roughness_metallic_ao.png",
+//                  Texture.WrapMode.CLAMP_TO_EDGE,
+//                  Texture.ColorFormat.LINEAR);
+      //Create arraylist of virtual object meshes and shaders  (anything that is in the file directory)
+      /*
+          Just a idea dump, I guess the way to organize this is to have the app just read all the objects that are in the assest directory
+          for creating objects all you then have to do is just save it to the assest directory, and add them to the arraylist
+          which then will update UI and stuff and then you can place anchors for them
+
+          they must have a certain format
+
+          object: objectName.obj
+          texture: objectName.png
+
+          One texture for each. Look like it breaks if not.
+       */
+
+      //traverse the assets direcotry
+      String[] list;
+      String path = "models";
+      try {
+        list = getAssets().list(path);
+        if (list.length > 0) {
+          for (String file : list) {
+            String fileName = file.toString();
+            int index  = fileName.lastIndexOf('.');
+            int obj_index = virtualObjectMeshes.size();
+
+            if (index > 0) {
+              String extension = fileName.substring(index + 1);
+              if (extension.equals("obj")) {
+                String objectName = fileName.substring(0, index);
+                Log.i("dir", "Found object " + objectName + " adding object to meshes, creating texture, and shader...");
+
+                virtualObjectMeshes.add(Mesh.createFromAsset(render, "models/" + fileName));
+
+                //Look for texture png
+                virtualObjectTextures.add(Texture.createFromAsset(
+                        render,
+                        "models/" + objectName + ".png",
+                        Texture.WrapMode.CLAMP_TO_EDGE,
+                        Texture.ColorFormat.SRGB));
+
+                //Create a shader
+                virtualObjectShaders.add(Shader.createFromAssets(
+                        render,
+                        "shaders/environmental_hdr.vert",
+                        "shaders/environmental_hdr.frag",
+                        /*defines=*/ new HashMap<String, String>() {
+                          {
+                            put(
+                                    "NUMBER_OF_MIPMAP_LEVELS",
+                                    Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
+                          }
+                        })
+                        .setTexture("u_AlbedoTexture", virtualObjectTextures.get(obj_index))
+                        //.setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
+                        .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
+                        .setTexture("u_DfgTexture", dfgTexture));
+              }
+            }
+          }
+        }
+      } catch (IOException e) {
+        Log.e("dir", "IO exception. Either could not find the models directory or there is no corresponding texture for each .obj model");
+      }
+
+      //virtualObjectMesh = (Mesh.createFromAsset(render, "models/pawn.obj"));
+//      virtualObjectShader =
+//          Shader.createFromAssets(
+//                  render,
+//                  "shaders/environmental_hdr.vert",
+//                  "shaders/environmental_hdr.frag",
+//                  /*defines=*/ new HashMap<String, String>() {
+//                    {
+//                      put(
+//                          "NUMBER_OF_MIPMAP_LEVELS",
+//                          Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
+//                    }
+//                  })
+//              .setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
+//              //.setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
+//              .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
+//              .setTexture("u_DfgTexture", dfgTexture);
+
+      Log.i("finished adding", "finished adding");
     } catch (IOException e) {
       Log.e(TAG, "Failed to read a required asset file", e);
       messageSnackbarHelper.showError(this, "Failed to read a required asset file: " + e);
@@ -603,7 +675,7 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
     // -- Draw occluded virtual objects
 
     // Update lighting parameters in the shader
-    updateLightEstimation(frame.getLightEstimate(), viewMatrix);
+    updateLightEstimation(frame.getLightEstimate(), viewMatrix, 0 ); //object index 0 for now
 
     // Visualize anchors created by touch.
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
@@ -621,9 +693,9 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
       Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
       // Update shader properties and draw
-      virtualObjectShader.setMat4("u_ModelView", modelViewMatrix);
-      virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-      render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer);
+      virtualObjectShaders.get(0).setMat4("u_ModelView", modelViewMatrix);
+      virtualObjectShaders.get(0).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+      render.draw(virtualObjectMeshes.get(0), virtualObjectShaders.get(0), virtualSceneFramebuffer);
     }
 
     // Compose the virtual scene with the background.
@@ -781,36 +853,39 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
   }
 
   /** Update state based on the current frame's light estimation. */
-  private void updateLightEstimation(LightEstimate lightEstimate, float[] viewMatrix) {
-    if (lightEstimate.getState() != LightEstimate.State.VALID) {
-      virtualObjectShader.setBool("u_LightEstimateIsValid", false);
-      return;
+  private void updateLightEstimation(LightEstimate lightEstimate, float[] viewMatrix, int objIndex) {
+    if (virtualObjectShaders.get(objIndex) != null) {
+      if (lightEstimate.getState() != LightEstimate.State.VALID) {
+        virtualObjectShaders.get(objIndex).setBool("u_LightEstimateIsValid", false);
+        return;
+      }
+      virtualObjectShaders.get(objIndex).setBool("u_LightEstimateIsValid", true);
+
+      Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
+      virtualObjectShaders.get(objIndex).setMat4("u_ViewInverse", viewInverseMatrix);
+
+      updateMainLight(
+              lightEstimate.getEnvironmentalHdrMainLightDirection(),
+              lightEstimate.getEnvironmentalHdrMainLightIntensity(),
+              viewMatrix, objIndex);
+      updateSphericalHarmonicsCoefficients(
+              lightEstimate.getEnvironmentalHdrAmbientSphericalHarmonics(), objIndex);
+      cubemapFilter.update(lightEstimate.acquireEnvironmentalHdrCubeMap());
     }
-    virtualObjectShader.setBool("u_LightEstimateIsValid", true);
-
-    Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-    virtualObjectShader.setMat4("u_ViewInverse", viewInverseMatrix);
-
-    updateMainLight(
-        lightEstimate.getEnvironmentalHdrMainLightDirection(),
-        lightEstimate.getEnvironmentalHdrMainLightIntensity(),
-        viewMatrix);
-    updateSphericalHarmonicsCoefficients(
-        lightEstimate.getEnvironmentalHdrAmbientSphericalHarmonics());
-    cubemapFilter.update(lightEstimate.acquireEnvironmentalHdrCubeMap());
+    Log.i("virtual", "no virtual object shader for this object");
   }
 
-  private void updateMainLight(float[] direction, float[] intensity, float[] viewMatrix) {
+  private void updateMainLight(float[] direction, float[] intensity, float[] viewMatrix, int objIndex) {
     // We need the direction in a vec4 with 0.0 as the final component to transform it to view space
     worldLightDirection[0] = direction[0];
     worldLightDirection[1] = direction[1];
     worldLightDirection[2] = direction[2];
     Matrix.multiplyMV(viewLightDirection, 0, viewMatrix, 0, worldLightDirection, 0);
-    virtualObjectShader.setVec4("u_ViewLightDirection", viewLightDirection);
-    virtualObjectShader.setVec3("u_LightIntensity", intensity);
+    virtualObjectShaders.get(objIndex).setVec4("u_ViewLightDirection", viewLightDirection);
+    virtualObjectShaders.get(objIndex).setVec3("u_LightIntensity", intensity);
   }
 
-  private void updateSphericalHarmonicsCoefficients(float[] coefficients) {
+  private void updateSphericalHarmonicsCoefficients(float[] coefficients, int objIndex) {
     // Pre-multiply the spherical harmonics coefficients before passing them to the shader. The
     // constants in sphericalHarmonicFactors were derived from three terms:
     //
@@ -834,7 +909,7 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
     for (int i = 0; i < 9 * 3; ++i) {
       sphericalHarmonicsCoefficients[i] = coefficients[i] * sphericalHarmonicFactors[i / 3];
     }
-    virtualObjectShader.setVec3Array(
+    virtualObjectShaders.get(objIndex).setVec3Array(
         "u_SphericalHarmonicsCoefficients", sphericalHarmonicsCoefficients);
   }
 
