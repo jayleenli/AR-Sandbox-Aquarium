@@ -121,7 +121,7 @@
                     app:cardCornerRadius="10dp">
 
                     <ImageView
-                        android:id="@+id/obj0_img"
+                        android:id="@+id/obj_img_0"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="#ffff"
@@ -141,7 +141,7 @@
                     app:cardCornerRadius="10dp">
 
                     <ImageView
-                        android:id="@+id/obj1_img"
+                        android:id="@+id/obj_img_1"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="#ffff"
@@ -161,7 +161,7 @@
                     app:cardCornerRadius="10dp">
 
                     <ImageView
-                        android:id="@+id/obj2_img"
+                        android:id="@+id/obj_img_2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="#ffff"

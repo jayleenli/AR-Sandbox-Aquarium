@@ -532,11 +532,36 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
 //              .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
 //              .setTexture("u_DfgTexture", dfgTexture);
 
-      Log.i("finished adding", "finished adding");
+
     } catch (IOException e) {
       Log.e(TAG, "Failed to read a required asset file", e);
       messageSnackbarHelper.showError(this, "Failed to read a required asset file: " + e);
     }
+
+    Log.i("dir", "finished adding");
+
+    //Now done with adding, put into menu
+
+
+
+
+
+  }
+
+  //Given an index range for the virtual object meshes, load these into the menu UI
+  public void loadObjectsInMenu(int indexStart, int indexEnd) {
+    //We can only load in pages of 3s, but thats a problem for the arrow clicks to deal with
+    if(indexEnd - indexStart < 3) {
+
+    }
+    else if (indexEnd - indexStart == 3) {
+
+    }
+    else {
+      Log.e("loadObjectsInMenu", "Cannot call for range greater than 3");
+    }
+
+
   }
 
   @Override

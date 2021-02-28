@@ -1,0 +1,20 @@
+<androidx.cardview.widget.CardView id="@+id/obj0"
+    android:layout_width="347dp"
+    android:layout_height="120dp"
+    layout_gravity="center_vertical"
+    layout_marginHorizontal="3dp"
+    layout_marginVertical="6dp"
+    layout_weight=".33333333"
+    gravity="center"
+    radius="10dp"
+    cardCornerRadius="10dp"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <ImageView
+        android:id="@+id/obj0_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffff"
+        android:scaleType="centerCrop" />
+</androidx.cardview.widget.CardView>
+
