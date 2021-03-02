@@ -20,6 +20,7 @@ closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel) #this is for furthe
 # plt.show()
 print("starting contour")
 contours, hierarchy = cv2.findContours(closing,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) #find contours with simple approximation
+print("end contour")
 
 cv2.imshow('cleaner', closing) #Figure 3
 cv2.drawContours(closing, contours, -1, (255, 255, 255), 4)
