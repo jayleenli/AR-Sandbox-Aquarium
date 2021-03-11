@@ -464,6 +464,7 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
           One texture for each. Look like it breaks if not.
        */
 
+      Log.i("FILE XX", "hello");
       //traverse the assets direcotry
       String[] list;
       String path = "models";
@@ -479,7 +480,37 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
               String extension = fileName.substring(index + 1);
               if (extension.equals("obj")) {
                 String objectName = fileName.substring(0, index);
-                Log.i("dir", "Found object " + objectName + " adding object to meshes, creating texture, and shader...");
+                Log.i("FILE XX", "Found object " + objectName + " adding object to meshes, creating texture, and shader...");
+
+                virtualObjectMeshes.add(Mesh.createFromAsset(render, "models/" + fileName));
+
+                //Look for texture png
+                virtualObjectTextures.add(Texture.createFromAsset(
+                        render,
+                        "models/" + objectName + ".png",
+                        Texture.WrapMode.CLAMP_TO_EDGE,
+                        Texture.ColorFormat.SRGB));
+
+                //Create a shader
+                virtualObjectShaders.add(Shader.createFromAssets(
+                        render,
+                        "shaders/environmental_hdr.vert",
+                        "shaders/environmental_hdr.frag",
+                        /*defines=*/ new HashMap<String, String>() {
+                          {
+                            put(
+                                    "NUMBER_OF_MIPMAP_LEVELS",
+                                    Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
+                          }
+                        })
+                        .setTexture("u_AlbedoTexture", virtualObjectTextures.get(obj_index))
+                        //.setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
+                        .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
+                        .setTexture("u_DfgTexture", dfgTexture));
+              }
+              else if (extension.equals("gltf")) {
+                String objectName = fileName.substring(0, index);
+                Log.i("FILE XX", "Found object " + objectName + " adding object to meshes, creating texture, and shader...");
 
                 virtualObjectMeshes.add(Mesh.createFromAsset(render, "models/" + fileName));
 
@@ -700,7 +731,9 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
     // -- Draw occluded virtual objects
 
     // Update lighting parameters in the shader
-    updateLightEstimation(frame.getLightEstimate(), viewMatrix, 0 ); //object index 0 for now
+    int objIndex = 1; //object index 0 for now
+
+    updateLightEstimation(frame.getLightEstimate(), viewMatrix, objIndex);
 
     // Visualize anchors created by touch.
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
@@ -718,9 +751,9 @@ public class ArSandboxMainActivity extends AppCompatActivity implements SampleRe
       Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
       // Update shader properties and draw
-      virtualObjectShaders.get(0).setMat4("u_ModelView", modelViewMatrix);
-      virtualObjectShaders.get(0).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-      render.draw(virtualObjectMeshes.get(0), virtualObjectShaders.get(0), virtualSceneFramebuffer);
+      virtualObjectShaders.get(objIndex).setMat4("u_ModelView", modelViewMatrix);
+      virtualObjectShaders.get(objIndex).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+      render.draw(virtualObjectMeshes.get(objIndex), virtualObjectShaders.get(objIndex), virtualSceneFramebuffer);
     }
 
     // Compose the virtual scene with the background.
