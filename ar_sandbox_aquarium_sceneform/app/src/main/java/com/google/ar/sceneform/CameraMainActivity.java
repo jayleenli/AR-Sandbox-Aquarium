@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -162,7 +163,11 @@ public class CameraMainActivity extends AppCompatActivity {
   {
     if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK)
     {
-      Bitmap photo = (Bitmap) data.getExtras().get("data");
+      float degrees = 90; //rotation degree
+      Matrix matrix = new Matrix();
+      matrix.setRotate(degrees);
+      Bitmap origBitMap = (Bitmap) data.getExtras().get("data");
+      Bitmap photo = Bitmap.createBitmap(origBitMap, 0, 0, origBitMap.getWidth(), origBitMap.getHeight(), matrix, true);
       imageView.setImageBitmap(photo);
     }
   }

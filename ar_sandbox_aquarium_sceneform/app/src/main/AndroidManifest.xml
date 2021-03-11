@@ -42,7 +42,7 @@
             android:value="required" />
 
         <activity
-            android:name=".HelloSceneformActivity"
+            android:name=".ArSandboxAquariumActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:label="@string/app_name"
