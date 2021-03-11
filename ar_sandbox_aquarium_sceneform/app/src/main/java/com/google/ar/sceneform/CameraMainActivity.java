@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -16,8 +17,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.ar.sceneform.samples.hellosceneform.ArSandboxAquariumActivity;
 public class CameraMainActivity extends AppCompatActivity {
   private static final int CAMERA_REQUEST = 1888;
   private ImageView imageView;
@@ -62,11 +65,6 @@ public class CameraMainActivity extends AppCompatActivity {
   private final Runnable mShowPart2Runnable = new Runnable() {
     @Override
     public void run() {
-      // Delayed display of UI elements
-//      ActionBar actionBar = getSupportActionBar();
-//      if (actionBar != null) {
-//        actionBar.show();
-//      }
       mControlsView.setVisibility(View.VISIBLE);
     }
   };
@@ -127,6 +125,34 @@ public class CameraMainActivity extends AppCompatActivity {
         }
       }
     });
+
+    ImageButton deleteButton = (ImageButton) findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.delete_button);
+    TextView cameraImageText = (TextView) this.findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.cameraImageText);
+    ImageView objectImageView = (ImageView) findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.objectImageView);
+    Drawable blankImage = getResources().getDrawable(com.google.ar.sceneform.samples.hellosceneform.R.drawable.blankimg, getTheme());
+    deleteButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                cameraImageText.setVisibility(View.VISIBLE);
+                objectImageView.setImageDrawable(blankImage);
+              }
+            });
+
+    ImageButton backButton = (ImageButton) findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.back_to_home_button);
+    backButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                openArSandboxAquariumActivity();
+              }
+            });
+  }
+
+  //Open Main Activity
+  public void openArSandboxAquariumActivity() {
+    Intent intent = new Intent(this, ArSandboxAquariumActivity.class);
+    startActivity(intent);
   }
 
   @Override
@@ -163,6 +189,10 @@ public class CameraMainActivity extends AppCompatActivity {
   {
     if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK)
     {
+      //Remove the text
+      TextView cameraImageText = (TextView) this.findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.cameraImageText);
+      cameraImageText.setVisibility(View.GONE);
+
       float degrees = 90; //rotation degree
       Matrix matrix = new Matrix();
       matrix.setRotate(degrees);
