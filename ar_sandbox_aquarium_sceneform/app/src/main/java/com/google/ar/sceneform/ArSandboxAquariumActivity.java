@@ -58,8 +58,8 @@ import java.util.ArrayList;
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
  */
-public class HelloSceneformActivity extends AppCompatActivity {
-  private static final String TAG = HelloSceneformActivity.class.getSimpleName();
+public class ArSandboxAquariumActivity extends AppCompatActivity {
+  private static final String TAG = ArSandboxAquariumActivity.class.getSimpleName();
   private static final double MIN_OPENGL_VERSION = 3.0;
 
   //Link for models
