@@ -18,6 +18,7 @@ package com.google.ar.sceneform.samples.hellosceneform;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -32,11 +33,15 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.CameraMainActivity;
 import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -71,14 +76,40 @@ public class HelloSceneformActivity extends AppCompatActivity {
   // FutureReturnValueIgnored is not valid
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_ux);
+    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
     if (!checkIsSupportedDeviceOrFinish(this)) {
       return;
     }
 
-    setContentView(R.layout.activity_ux);
-    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+    //Open and Close menu
+    Button closeOpenButton = findViewById(R.id.close_open_button);
+    LinearLayout objectMenu = findViewById(R.id.object_menu);
+    closeOpenButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                if (closeOpenButton.getText() == "▲") {
+                  closeOpenButton.setText("▼");
+                  objectMenu.setVisibility(View.VISIBLE);
+                } else {
+                  closeOpenButton.setText("▲");
+                  objectMenu.setVisibility(View.GONE);
+                }
+              }
+            });
 
+    //Open the Camera for object creation
+    Button createButton = findViewById(R.id.create_button);
+    createButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                openCameraActivity();
+              }
+            });
+    
     // When you build a Renderable, Sceneform loads its resources in the background while returning
     // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
 
@@ -126,6 +157,12 @@ public class HelloSceneformActivity extends AppCompatActivity {
           andy.setRenderable(modelRenderables.get(0));
           andy.select();
         });
+  }
+
+  //Open Camera Activity
+  public void openCameraActivity() {
+    Intent intent = new Intent(this, CameraMainActivity.class);
+    startActivity(intent);
   }
 
   /**
