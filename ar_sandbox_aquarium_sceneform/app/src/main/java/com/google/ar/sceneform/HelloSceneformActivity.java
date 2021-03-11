@@ -26,8 +26,10 @@ import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -46,6 +48,7 @@ import java.net.URI;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -54,8 +57,12 @@ public class HelloSceneformActivity extends AppCompatActivity {
   private static final String TAG = HelloSceneformActivity.class.getSimpleName();
   private static final double MIN_OPENGL_VERSION = 3.0;
 
+  //Link for models
+  private static final String MODELLINK = "https://raw.githubusercontent.com/jayleenli/AR-Sandbox-Aquarium-gltf-obj-dump/main/";
+  private static final String MODELFILES[] = { "fish1.gltf" };
+
   private ArFragment arFragment;
-  private ModelRenderable andyRenderable;
+  private ArrayList<ModelRenderable> modelRenderables = new ArrayList<>();
 
   @RequiresApi(api = VERSION_CODES.O)
   @Override
@@ -75,69 +82,34 @@ public class HelloSceneformActivity extends AppCompatActivity {
     // When you build a Renderable, Sceneform loads its resources in the background while returning
     // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
 
-//
-//    File file = new File("/mnt/c/Users/jayle/Documents/UCSB/WINTER 2021/cs291a/project/sceneform-android-sdk-1.15.0/samples/hellosceneform/app/src/main/assets/lod_70000.gltf");
-//
-//    URI fileUri = file.toURI();
-//    Log.i("URI","URI f:" + fileUri);
-//
-//    PackageManager m = getPackageManager();
-//    String s = getPackageName();
-//    try {
-//      PackageInfo p = m.getPackageInfo(s, 0);
-//      s = p.applicationInfo.dataDir;
-//    } catch (PackageManager.NameNotFoundException e) {
-//      Log.w("yourtag", "Error Package name not found ", e);
-//    }
-//
-//    Log.i("URI","URI g:" + getApplicationInfo().dataDir);
-//    try {
-//      InputStream is =  getAssets().open("lod_70000.gltf");
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
+    for (int i = 0; i < MODELFILES.length; i++ ) {
 
+      ModelRenderable.builder()
+              .setSource(this, RenderableSource.builder()
+                      .setSource(this, Uri.parse(MODELLINK + MODELFILES[i]), RenderableSource.SourceType.GLTF2)
+                      .setScale(1.0f)
+                      .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                      .build()).setRegistryId(MODELFILES[i])
+              .build()
+              .thenAccept(renderable -> {
+                //newRenderable = renderable;
+                modelRenderables.add(renderable);
+              }
+              )
+              .exceptionally(
+                      throwable -> {
+                        Toast toast =
+                                Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.CENTER, 0, 0);
+                        toast.show();
+                        return null;
+                      });
 
-//    final AssetManager assets = HelloSceneformActivity.this.getContentResolver().getAssets();
-//    final String[] names = assets.list( "/" );
-
-//    String[] list;
-//    String path = "";
-//    String filename = "";
-//    URI file2 = new File("").toURI();
-//    try {
-//      list = getAssets().list(path);
-//      for (String asset_file : list) {
-//        filename = file.toString();
-//        file2 = new File(filename).toURI();
-//        Log.i("file", file2.toString());
-//        Log.i("file", filename);
-//      }
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-
-
-    ModelRenderable.builder()
-        .setSource(this, RenderableSource.builder()
-                .setSource(this, Uri.parse("https://raw.githubusercontent.com/jayleenli/AR-Sandbox-Aquarium-gltf-obj-dump/main/fish1.gltf"), RenderableSource.SourceType.GLTF2)
-                .setScale(.75f)
-                .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                .build()).setRegistryId("test")
-        .build()
-        .thenAccept(renderable -> andyRenderable = renderable)
-        .exceptionally(
-            throwable -> {
-              Toast toast =
-                  Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-              toast.setGravity(Gravity.CENTER, 0, 0);
-              toast.show();
-              return null;
-            });
+    }
 
     arFragment.setOnTapArPlaneListener(
         (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-          if (andyRenderable == null) {
+          if (modelRenderables.get(0) == null) {
             Log.i("null","unull");
             return;
           }
@@ -151,7 +123,7 @@ public class HelloSceneformActivity extends AppCompatActivity {
           // Create the transformable andy and add it to the anchor.
           TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
           andy.setParent(anchorNode);
-          andy.setRenderable(andyRenderable);
+          andy.setRenderable(modelRenderables.get(0));
           andy.select();
         });
   }
