@@ -43,7 +43,8 @@ dependencies {
 
     // Provides ArFragment, and other Sceneform UX resources:
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.15.0"
-    implementation 'com.google.ar.sceneform:assets:1.15.0'
+    implementation "com.google.ar.sceneform:assets:1.15.0"
+    implementation "androidx.multidex:multidex:2.0.1"
 
     // Use the Sceneform UX Package built from the source files included in the sceneformux folder.
     //api project(":sceneformux")
