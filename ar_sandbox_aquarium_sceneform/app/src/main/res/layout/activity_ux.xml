@@ -101,8 +101,12 @@
             android:radius="10dp"
             app:cardCornerRadius="10dp">
 
-          <ImageView
+          <TextView
               android:id="@+id/obj_img_0"
+              android:gravity="center"
+              android:text=""
+              android:textColor="#000000"
+              android:textSize="32dp"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="#ffff"
@@ -121,8 +125,12 @@
             android:radius="10dp"
             app:cardCornerRadius="10dp">
 
-          <ImageView
+          <TextView
               android:id="@+id/obj_img_1"
+              android:gravity="center"
+              android:text=""
+              android:textColor="#000000"
+              android:textSize="32dp"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="#ffff"
@@ -141,8 +149,12 @@
             android:radius="10dp"
             app:cardCornerRadius="10dp">
 
-          <ImageView
+          <TextView
               android:id="@+id/obj_img_2"
+              android:gravity="center"
+              android:text=""
+              android:textColor="#000000"
+              android:textSize="32dp"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="#ffff"

@@ -137,27 +137,8 @@ public class CameraMainActivity extends AppCompatActivity {
         else
         {
            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//          Log.i("FILE", " IN HERE");
-//
-//          File photoFile = null;
-//          try {
-//            Log.i("FILE", " IN HERE2");
-//            photoFile = createImageFile();
-//            //Intent i = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-//            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoFile);
-//
-//            //galleryAddPic(photoFile, cameraIntent);
 
             startActivityForResult(cameraIntent, CAMERA_REQUEST);
-//          } catch (IOException ex) {
-//            // Error occurred while creating the File
-//            Log.i("ERR", " couldnt make file");
-//          }
-
-
-
-
-          //startActivityForResult(cameraIntent, CAMERA_REQUEST);
         }
       }
     });

@@ -31,6 +31,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
@@ -43,6 +44,10 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -53,10 +58,17 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
 
   //Link for models
   private static final String MODELLINK = "https://raw.githubusercontent.com/jayleenli/AR-Sandbox-Aquarium-gltf-obj-dump/main/";
-  private static final String MODELFILES[] = { "fish1.gltf" };
+  private static final String MODELFILES[] = { "fish1.gltf" , "NOVELO_GOLDFISH.gltf", "NOVELO_CRAYFISH.gltf", "fish1_cpy.gltf"};
 
   private ArFragment arFragment;
+  // Ok i know like bad code but oh well I need to keep the order
   private ArrayList<ModelRenderable> modelRenderables = new ArrayList<>();
+  private ArrayList<String> modelRenderablesNames = new ArrayList<>();
+  private int viewStartIndex = 0;
+  private int viewEndIndex = 2;
+  private int squareBoxIds[] = {R.id.obj_img_0, R.id.obj_img_1, R.id.obj_img_2};
+  private int stopLoadModelIndex;
+  private int selectedModelIndex = 0;
 
   @RequiresApi(api = VERSION_CODES.O)
   @Override
@@ -71,7 +83,11 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
     if (!checkIsSupportedDeviceOrFinish(this)) {
       return;
     }
-
+    //Load files from github
+    for (int i = 0; i < MODELFILES.length; i++ ) {
+      Log.i("MODEL", "In  " + i);
+        loadModel(MODELFILES[i]);
+    }
     //Open and Close menu
     Button closeOpenButton = findViewById(R.id.close_open_button);
     LinearLayout objectMenu = findViewById(R.id.object_menu);
@@ -98,60 +114,149 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
                 openCameraActivity();
               }
             });
-    
-    // When you build a Renderable, Sceneform loads its resources in the background while returning
-    // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
 
-    for (int i = 0; i < MODELFILES.length; i++ ) {
+      Button prevPageButton = findViewById(R.id.back_button);
+      prevPageButton.setOnClickListener(
+              new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                  //If can go more
+                  if (viewEndIndex > 2) {
+                    viewStartIndex -= 3;
+                    viewEndIndex -= 3;
+                    loadModelsIntoScreen();
+                  }
+                  //else do nothing
+                }
+              });
 
-      ModelRenderable.builder()
-              .setSource(this, RenderableSource.builder()
-                      .setSource(this, Uri.parse(MODELLINK + MODELFILES[i]), RenderableSource.SourceType.GLTF2)
-                      .setScale(1.0f)
-                      .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                      .build()).setRegistryId(MODELFILES[i])
-              .build()
-              .thenAccept(renderable -> {
-                //newRenderable = renderable;
-                modelRenderables.add(renderable);
+      Button nextPageButton = findViewById(R.id.next_button);
+      nextPageButton.setOnClickListener(
+              new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                  //If can go more
+                  if (viewEndIndex < modelRenderables.size() - 1 ) {
+                    viewStartIndex += 3;
+                    viewEndIndex += 3;
+                    loadModelsIntoScreen();
+                  }
+                  //else do nothing
+                }
+              });
+
+    //Listeners for all the object stuff
+    androidx.cardview.widget.CardView modelObjCard0 = findViewById(R.id.obj0);
+    modelObjCard0.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                selectedModelIndex = viewStartIndex; // should always have something in it
+                Log.i("item", "select item" + selectedModelIndex);
               }
-              )
-              .exceptionally(
-                      throwable -> {
-                        Toast toast =
-                                Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG);
-                        toast.setGravity(Gravity.CENTER, 0, 0);
-                        toast.show();
-                        return null;
-                      });
+            });
 
-    }
+    androidx.cardview.widget.CardView modelObjCard1 = findViewById(R.id.obj1);
+    modelObjCard1.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                if (stopLoadModelIndex > viewStartIndex) selectedModelIndex = viewStartIndex + 1;
+                Log.i("item", "select item 2 " + selectedModelIndex);
+              }
+            });
+
+    androidx.cardview.widget.CardView modelObjCard2 = findViewById(R.id.obj2);
+    modelObjCard2.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                if (stopLoadModelIndex > viewStartIndex+1) selectedModelIndex = stopLoadModelIndex;
+                Log.i("item", "select item 3 " + selectedModelIndex);
+              }
+            });
+
 
     arFragment.setOnTapArPlaneListener(
-        (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-          if (modelRenderables.get(0) == null) {
-            Log.i("null","unull");
-            return;
-          }
+            (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+              if (modelRenderables.get(selectedModelIndex) == null) {
+                Log.i("null", "unull");
+                return;
+              }
 
-          Log.i("item", "placed item");
-          // Create the Anchor.
-          Anchor anchor = hitResult.createAnchor();
-          AnchorNode anchorNode = new AnchorNode(anchor);
-          anchorNode.setParent(arFragment.getArSceneView().getScene());
+              Log.i("item", "placed item" + selectedModelIndex);
+              // Create the Anchor.
+              Anchor anchor = hitResult.createAnchor();
+              AnchorNode anchorNode = new AnchorNode(anchor);
+              anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-          // Create the transformable andy and add it to the anchor.
-          TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-          andy.setParent(anchorNode);
-          andy.setRenderable(modelRenderables.get(0));
-          andy.select();
-        });
+              // Create the transformable andy and add it to the anchor.
+              TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
+              andy.setParent(anchorNode);
+              andy.setRenderable(modelRenderables.get(selectedModelIndex));
+              andy.select();
+            });
   }
 
+  public void loadModel(String filename) {
+    CompletableFuture makeModel = ModelRenderable.builder()
+            .setSource(this, RenderableSource.builder()
+                    .setSource(this, Uri.parse(MODELLINK + filename), RenderableSource.SourceType.GLTF2)
+                    .setScale(.5f)
+                    .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                    .build()).setRegistryId(filename)
+            .build()
+            .thenAccept(renderable -> {
+                      modelRenderables.add(renderable);
+
+                      Log.i("MODEL", " FINISHED HERE" + filename);
+                      String name = filename.substring(0, filename.indexOf("."));
+                      modelRenderablesNames.add(name);
+                      loadModelsIntoScreen();
+                      //return renderable;
+                    }
+            )
+            .exceptionally(
+                    throwable -> {
+                      Toast toast =
+                              Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG);
+                      toast.setGravity(Gravity.CENTER, 0, 0);
+                      toast.show();
+                      return null;
+                    });
+  }
   //Open Camera Activity
   public void openCameraActivity() {
     Intent intent = new Intent(this, CameraMainActivity.class);
     startActivity(intent);
+  }
+
+  //Uses the global indexes, assumes they are correctly set
+  public void loadModelsIntoScreen() {
+    if (viewEndIndex - viewStartIndex != 2) { //2 because 1 off because start at index 0
+      throw new Error("WRONG!!");
+    }
+    int index = 0;
+    //Clear all text
+    for(int i = viewStartIndex; i <= viewEndIndex; i++) {
+      //Just loads the model names
+      TextView obj = (TextView) this.findViewById(squareBoxIds[index]);
+      obj.setText("");
+      index++;
+    }
+
+    stopLoadModelIndex = (modelRenderables.size()-1 < viewEndIndex) ? modelRenderables.size() - 1 : viewEndIndex;
+
+    Log.i("MODELS", "stoploadModelIndex" + stopLoadModelIndex);
+
+    index = 0;
+    for(int i = viewStartIndex; i <= stopLoadModelIndex; i++) {
+      //Just loads the model names
+      TextView obj = (TextView) this.findViewById(squareBoxIds[index]);
+      obj.setText(modelRenderablesNames.get(i));
+      Log.i("MODELS", "Loaded " + modelRenderablesNames.get(i) + " name into screen");
+      index++;
+    }
   }
 
   /**
