@@ -22,7 +22,7 @@ start_index_filename = 0
 if (image_file.index('/') >= 0):
 	start_index_filename = image_file.rfind('/')+1
 object_name = image_file[start_index_filename:image_file.index('.')]
-print("PROGRESS image loaded, object name =", object_name)
+print("PROGRESS: image loaded, object name =", object_name)
 try:
 	orig_img = cv2.imread(image_file)
 except cv2.error as e:
@@ -48,7 +48,7 @@ mask = np.zeros(scale_img.shape[:2],np.uint8)
 img = scale_img
 
 #Replace shades of white to white (thresholding)
-img[np.where((img>=[150,150,150]).all(axis=2))] = [255,255,255]
+img[np.where((img>=[180,180,180]).all(axis=2))] = [255,255,255]
 
 bgdModel = np.zeros((1,65),np.float64)
 fgdModel = np.zeros((1,65),np.float64)
@@ -215,7 +215,7 @@ print("PROGRESS: loaded point cloud")
 print("PROGRESS: beginning meshing...")
 
 #Meshing (Poisson)
-scale = 0.0001
+scale = 0.0005
 poisson_mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=8, width=0, scale=1.1, linear_fit=False)[0]
 
 #Scale down cuz file is giant
