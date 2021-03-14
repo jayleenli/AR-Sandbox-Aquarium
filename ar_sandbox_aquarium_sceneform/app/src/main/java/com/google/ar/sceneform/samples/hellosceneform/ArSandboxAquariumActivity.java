@@ -19,6 +19,8 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
@@ -58,10 +60,9 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
 
   //Link for models
   private static final String MODELLINK = "https://raw.githubusercontent.com/jayleenli/AR-Sandbox-Aquarium-gltf-obj-dump/main/";
-  private static final String MODELFILES[] = { "fish1.gltf" , "NOVELO_GOLDFISH.gltf", "NOVELO_CRAYFISH.gltf", "fish1_cpy.gltf"};
+  private static final String MODELFILES[] = { "jellyfish.glb", "seaweed.glb", "clownfish.glb", "fish.glb", "starfish.glb", "turtle.glb", "blue_tang.glb"};
 
   private ArFragment arFragment;
-  // Ok i know like bad code but oh well I need to keep the order
   private ArrayList<ModelRenderable> modelRenderables = new ArrayList<>();
   private ArrayList<String> modelRenderablesNames = new ArrayList<>();
   private int viewStartIndex = 0;
@@ -145,6 +146,10 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
                 }
               });
 
+
+    ColorDrawable white_cd = new ColorDrawable(Color.parseColor("#ffffff"));
+    ColorDrawable gray_cd = new ColorDrawable(Color.parseColor("#dedede"));
+
     //Listeners for all the object stuff
     androidx.cardview.widget.CardView modelObjCard0 = findViewById(R.id.obj0);
     modelObjCard0.setOnClickListener(
@@ -152,17 +157,43 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
               @Override
               public void onClick(View v) {
                 selectedModelIndex = viewStartIndex; // should always have something in it
+                TextView textCard0 = (TextView) findViewById(R.id.obj_img_0);
+                textCard0.setBackground(gray_cd);
                 Log.i("item", "select item" + selectedModelIndex);
+
+                new java.util.Timer().schedule(
+                        new java.util.TimerTask() {
+                          @Override
+                          public void run() {
+                            textCard0.setBackground(white_cd);
+                          }
+                        },
+                        250
+                );
               }
             });
 
+
     androidx.cardview.widget.CardView modelObjCard1 = findViewById(R.id.obj1);
+
     modelObjCard1.setOnClickListener(
             new View.OnClickListener() {
               @Override
               public void onClick(View v) {
                 if (stopLoadModelIndex > viewStartIndex) selectedModelIndex = viewStartIndex + 1;
+                TextView textCard1 = (TextView) findViewById(R.id.obj_img_1);
+                textCard1.setBackground(gray_cd);
                 Log.i("item", "select item 2 " + selectedModelIndex);
+
+                new java.util.Timer().schedule(
+                        new java.util.TimerTask() {
+                          @Override
+                          public void run() {
+                            textCard1.setBackground(white_cd);
+                          }
+                        },
+                        250
+                );
               }
             });
 
@@ -172,7 +203,19 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
               @Override
               public void onClick(View v) {
                 if (stopLoadModelIndex > viewStartIndex+1) selectedModelIndex = stopLoadModelIndex;
+                TextView textCard2 = (TextView) findViewById(R.id.obj_img_2);
+                textCard2.setBackground(gray_cd);
                 Log.i("item", "select item 3 " + selectedModelIndex);
+
+                new java.util.Timer().schedule(
+                        new java.util.TimerTask() {
+                          @Override
+                          public void run() {
+                            textCard2.setBackground(white_cd);
+                          }
+                        },
+                        250
+                );
               }
             });
 
@@ -201,8 +244,8 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
   public void loadModel(String filename) {
     CompletableFuture makeModel = ModelRenderable.builder()
             .setSource(this, RenderableSource.builder()
-                    .setSource(this, Uri.parse(MODELLINK + filename), RenderableSource.SourceType.GLTF2)
-                    .setScale(.5f)
+                    .setSource(this, Uri.parse(MODELLINK + filename), RenderableSource.SourceType.GLB)
+                    .setScale(.75f)
                     .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                     .build()).setRegistryId(filename)
             .build()
