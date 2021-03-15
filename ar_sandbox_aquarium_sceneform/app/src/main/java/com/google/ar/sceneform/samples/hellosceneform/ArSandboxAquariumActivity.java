@@ -47,9 +47,6 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -60,7 +57,7 @@ public class ArSandboxAquariumActivity extends AppCompatActivity {
 
   //Link for models
   private static final String MODELLINK = "https://raw.githubusercontent.com/jayleenli/AR-Sandbox-Aquarium-gltf-obj-dump/main/";
-  private static final String MODELFILES[] = { "jellyfish.glb", "seaweed.glb", "clownfish.glb", "fish.glb", "starfish.glb", "turtle.glb", "blue_tang.glb"};
+  private static final String MODELFILES[] = { "jellyfish.glb", "clownfish.glb", "fish.glb", "starfish.glb", "turtle.glb", "blue_tang.glb", "seaweed.glb"};
 
   private ArFragment arFragment;
   private ArrayList<ModelRenderable> modelRenderables = new ArrayList<>();

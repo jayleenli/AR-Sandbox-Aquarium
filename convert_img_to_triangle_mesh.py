@@ -1,14 +1,12 @@
 '''
 Takes a 2D Image from a white based background and
-creates a 3D mesh and then creates a 3D object from it
-
+creates a 3D mesh and 3D object from the image
 '''
 
 import sys
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
-from PIL import Image, ImageFilter
 import open3d as o3d
 import copy
 
@@ -18,7 +16,7 @@ if (len(sys.argv) != 2):
 
 image_file = sys.argv[1]
 start_index_filename = 0
-#If in a subdirectory
+# If in a subdirectory
 if (image_file.index('/') >= 0):
 	start_index_filename = image_file.rfind('/')+1
 object_name = image_file[start_index_filename:image_file.index('.')]
@@ -32,22 +30,22 @@ except cv2.error as e:
 h_orig,w_orig,chn = orig_img.shape
 print("PROGRESS: original image size", orig_img.shape)
 
-#Scale image down for faster processing
+# Scale image down for faster processing
 scale = 1
 if (h_orig > 800 or w_orig > 800):
-    scale = 800/max(h_orig, w_orig) #should be less than 1
+    scale = 800/max(h_orig, w_orig) # should be less than 1
 
 newsize = ((int)(w_orig*scale),(int)(h_orig*scale)) 
 scale_img = cv2.resize(orig_img, newsize, interpolation = cv2.INTER_AREA)
 
 h,w,chn = scale_img.shape
 
-#Image to Vertices
+# Image to Vertices
 mask = np.zeros(scale_img.shape[:2],np.uint8)
 
 img = scale_img
 
-#Replace shades of white to white (thresholding)
+# Replace shades of white to white (thresholding)
 img[np.where((img>=[180,180,180]).all(axis=2))] = [255,255,255]
 
 bgdModel = np.zeros((1,65),np.float64)
@@ -55,7 +53,7 @@ fgdModel = np.zeros((1,65),np.float64)
 
 print("PROGRESS: scaled image size", img.shape)
 
-# This frame may need some work. Not sure how to estimate a good window
+# This is an estimate where the window should be and has proven to be a good estimate
 rect = ((int)(.05 * w), (int)(.05* h), (int)(.9*w), (int)(.9*h)) #(start_x, start_y, width, height)
 
 cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_RECT)
@@ -65,19 +63,11 @@ mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
 #Improvement, make sure the threshold we sent makes the mask set to background
 mask2[np.where((img>=[150,150,150]).all(axis=2))] = 0
 
-'''
-OpenCV grabcut takes the input image, mask and rectangle for object, background model, foregound model, 
-amount of iterations to run, and mode
-
-Mask is changed so that all 0 & 2 pixels are converted to background, 1 and 3 are foreground. 
-Multiply with input image and get result.
-'''
-
 img = img*mask2[:,:,np.newaxis]
 
 print("PROGRESS: done with grabcut, saving image")
 
-#Contouring
+# Contouring
 gwash = img 
 gwashBW = cv2.cvtColor(gwash, cv2.COLOR_BGR2GRAY) #change to grayscale
 
@@ -99,13 +89,13 @@ dst = np.zeros((closing.shape[1], closing.shape[0]),np.uint8)
 print("PROGRESS: done with contours")
 
 #Get only the largest area
-areas = [] #list to hold all areas
+areas = []
 
 for contour in contours:
     areas.append(cv2.contourArea(contour))
 
 max_area = max(areas)
-max_area_index = areas.index(max_area) #index of the list element with largest area
+max_area_index = areas.index(max_area)
 
 cnt = contours[max_area_index] #largest area contour
 
@@ -128,7 +118,7 @@ for i in range(closing.shape[0]):
 zipped_all_pts = np.array([list(x) for x in zipped_all_pts])
 
 
-#colors, from original image
+# Get color from original image
 def get_color(pt_x, pt_y, orig_img):
     if(pt_x >= w or pt_x < 0): 
         return [0, 0, 0]
@@ -151,26 +141,26 @@ def get_width_and_length_and_trans(points):
     return (width, length, trans_x, trans_y)
 
 '''
-Point will be x, y in 2D
+Inputs:Point will be x, y in 2D
 w_l_trans in format same as get_width_and_length_and_trans function
    (width, length, trans_x_to_origin, trans_y_to_origin)
+Output: prints new point moved to origin
 '''
 def move_to_origin(point, w_l_trans):
     width = w_l_trans[0]
     height = w_l_trans[1]
     return [point[0]-(width/2)-w_l_trans[2], point[1]-(height/2)-w_l_trans[3]]
 
-#As you can see normals hardcoded, probably not entirely right but works well enough
+# As you can see normals hardcoded
 normal = [0, 0, 1] 
 normal_down = [0, 0, -1]
-dummy_color = [0, 255, 255] #dummy color
 dummy_neg_z = -10.0
 dummy_pos_z = 10.0
 
 data = []
 w_l_trans = get_width_and_length_and_trans(zipped_all_pts)
 
-#zipped_all_pts used to be countours[max_area_index] but mesh reconstruction using these algorithms do not work as well.
+# zipped_all_pts used to be countours[max_area_index] but mesh reconstruction using these just the contour points does not work well.
 for x in zipped_all_pts:
     point_color = get_color(x[0], x[1], scale_img)
     moved_pt = move_to_origin(x, w_l_trans)
@@ -191,16 +181,6 @@ f.close()
 
 print("PROGRESS: created and saved point mesh as point_mesh.txt")
 
-#Simplification of model
-def lod_mesh_export(mesh, lods, extension, path):
-    mesh_lods={}
-    for i in lods:
-        mesh_lod = mesh.simplify_quadric_decimation(i)
-        o3d.io.write_triangle_mesh(path+"lod_"+str(i)+extension, mesh_lod)
-        mesh_lods[i]=mesh_lod
-    print("generation of "+str(i)+" LoD successful")
-    return mesh_lods
-
 input_path=""
 output_path=""
 points_filename="point_mesh.txt" 
@@ -214,13 +194,13 @@ pcd.normals = o3d.utility.Vector3dVector(point_cloud[:,6:9])
 print("PROGRESS: loaded point cloud")
 print("PROGRESS: beginning meshing...")
 
-#Meshing (Poisson)
+# Meshing (Poisson)
 scale = 0.0005
 poisson_mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=8, width=0, scale=1.1, linear_fit=False)[0]
 
-#Scale down cuz file is giant
+# Scale down
 poisson_mesh.scale(scale, center=poisson_mesh.get_center())
-#Rotate because opencv image is upside down, not sure why
+# Rotate because opencv image is upside down, not sure why
 R = poisson_mesh.get_rotation_matrix_from_xyz((np.pi, 0, 0))
 poisson_mesh.rotate(R, center=(0, 0, 0))
 
@@ -228,13 +208,22 @@ bbox = pcd.get_axis_aligned_bounding_box()
 p_mesh_crop = poisson_mesh.crop(bbox)
 print("PROGRESS: poisson triangle number", len(poisson_mesh.triangles))
 
-#Export
+# Export
 poisson_mesh = copy.deepcopy(poisson_mesh).translate((0, 0, 0), relative=False)
 p_mesh_crop = copy.deepcopy(p_mesh_crop).translate((0, 0, 0), relative=False)
 poisson_mesh = poisson_mesh.compute_triangle_normals();
 p_mesh_crop = p_mesh_crop.compute_triangle_normals();
 
-#types, obj, ply, stl, gltf
+# types: obj, ply, stl, gltf
 o3d.io.write_triangle_mesh(output_path+ object_name+".gltf", poisson_mesh)
-#o3d.io.write_triangle_mesh(output_path+"p_mesh_c_fish_test_n.obj", p_mesh_crop)
 print("PROGRESS: done exporting")
+
+# Simplification of model
+def lod_mesh_export(mesh, lods, extension, path):
+    mesh_lods={}
+    for i in lods:
+        mesh_lod = mesh.simplify_quadric_decimation(i)
+        o3d.io.write_triangle_mesh(path+"lod_"+str(i)+extension, mesh_lod)
+        mesh_lods[i]=mesh_lod
+    print("generation of "+str(i)+" LoD successful")
+    return mesh_lods

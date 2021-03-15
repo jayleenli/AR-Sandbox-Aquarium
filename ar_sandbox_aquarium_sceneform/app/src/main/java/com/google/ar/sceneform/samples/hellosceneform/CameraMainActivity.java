@@ -26,14 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.google.ar.sceneform.samples.hellosceneform.ArSandboxAquariumActivity;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.google.ar.sceneform.samples.hellosceneform.ArSandboxAquariumActivity;
 
 public class CameraMainActivity extends AppCompatActivity {
   private static final int CAMERA_REQUEST = 1888;
@@ -157,22 +150,22 @@ public class CameraMainActivity extends AppCompatActivity {
             });
 
     ImageButton backButton = (ImageButton) findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.back_to_home_button);
-//    backButton.setOnClickListener(
-//            new View.OnClickListener() {
-//              @Override
-//              public void onClick(View v) {
-//                openArSandboxAquariumActivity();
-//              }
-//            });
+    backButton.setOnClickListener(
+            new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                openArSandboxAquariumActivity();
+              }
+            });
 
 
   }
 
-//  //Open Main Activity
-//  public void openArSandboxAquariumActivity() {
-//    Intent intent = new Intent(this, ArSandboxAquariumActivity.class);
-//    startActivity(intent);
-//  }
+  //Open Main Activity
+  public void openArSandboxAquariumActivity() {
+    Intent intent = new Intent(this, ArSandboxAquariumActivity.class);
+    startActivity(intent);
+  }
 
   @Override
   protected void onPostCreate(Bundle savedInstanceState) {
@@ -209,7 +202,6 @@ public class CameraMainActivity extends AppCompatActivity {
   {
     if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK)
     {
-
       //Remove the text
       TextView cameraImageText = (TextView) this.findViewById(com.google.ar.sceneform.samples.hellosceneform.R.id.cameraImageText);
       cameraImageText.setVisibility(View.GONE);
@@ -229,30 +221,6 @@ public class CameraMainActivity extends AppCompatActivity {
     }
   }
 
-//  private void dispatchTakePictureIntent() {
-//    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//    // Ensure that there's a camera activity to handle the intent
-//    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//      // Create the File where the photo should go
-//      File photoFile = null;
-//      try {
-//        photoFile = createImageFile();
-//        //galleryAddPic();
-//        Log.i("FILE", " HUHUHUHUHUHU");
-//      } catch (IOException ex) {
-//        // Error occurred while creating the File
-//      }
-//      // Continue only if the File was successfully created
-////      if (photoFile != null) {
-////        Uri photoURI = FileProvider.getUriForFile(this,
-////                "com.example.android.fileprovider",
-////                photoFile);
-////        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-////        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-////      }
-//    }
-//  }
-
   private void hide() {
     // Hide UI first
     mVisible = false;
@@ -270,105 +238,4 @@ public class CameraMainActivity extends AppCompatActivity {
     mHideHandler.removeCallbacks(mHideRunnable);
     mHideHandler.postDelayed(mHideRunnable, delayMillis);
   }
-
-  //Save a bitmap
-  private File getBitMapFile(String name){
-    PackageManager m = getPackageManager();
-    String projectDir = getPackageName();
-    try {
-      PackageInfo p = m.getPackageInfo(projectDir, 0);
-      projectDir = getApplicationContext().getFilesDir().getAbsolutePath();
-      File mediaStorageDir = new File(projectDir);
-
-      // Create the storage directory if it does not exist
-      if (! mediaStorageDir.exists()){
-        if (! mediaStorageDir.mkdirs()){
-          return null;
-        }
-      }
-      // Create a media file name
-      File mediaFile;
-      String mImageName=name +".jpg";
-      mediaFile = new File(getAssets() + File.separator + mImageName);
-
-
-      return mediaFile;
-
-
-    } catch (PackageManager.NameNotFoundException e) {
-      Log.w("yourtag", "Error Package name not found ", e);
-    }
-    return null;
-
-    // To be safe, you should check that the SDCard is mounted
-    // using Environment.getExternalStorageState() before doing this.
-
-
-//            + "/Android/data/"
-//            + getApplicationContext().getPackageName()
-//            + "/Files");
-
-    // This location works best if you want the created images to be shared
-    // between applications and persist after your app has been uninstalled.
-  }
-
-//  private void save() {
-//    try { getPictureFile(); }
-//    catch(IOException e) {}
-//    Intent galleryIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-//    File f = new File(pictureFilePath);
-//    Uri picUri = Uri.fromFile(f);
-//    galleryIntent.setData(picUri);
-//    this.sendBroadcast(galleryIntent);
-//  }
-//
-//  private File getPictureFile() throws IOException {
-//    String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-//    String pictureFile = "ZOFTINO_" + timeStamp;
-//    File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-//    File image = File.createTempFile(pictureFile,  ".jpg", storageDir);
-//    pictureFilePath = image.getAbsolutePath();
-//    return image;
-//  }
-//
-////  private File createImageFile() throws IOException {
-////    // Create an image file name
-////    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-////    String imageFileName = "JPEG_" + timeStamp + "_";
-////    File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-////    File image = File.createTempFile(
-////            imageFileName,  /* prefix */
-////            ".jpg",         /* suffix */
-////            storageDir      /* directory */
-////    );
-////
-////    // Save a file: path for use with ACTION_VIEW intents
-////    currentPhotoPath = image.getAbsolutePath();
-////    return image;
-////  }
-//public static File createImageFile() throws IOException {
-//  // Create an image file name
-//  String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//  File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/Camera/");
-//  //File storageDir = Environment.getExternalStorageDirectory();
-//
-//  if (!storageDir.exists())
-//    storageDir.mkdirs();
-//  File image = File.createTempFile(
-//          timeStamp,                   /* prefix */
-//          ".jpeg",                     /* suffix */
-//          storageDir                   /* directory */
-//  );
-//  return image;
-//}
-//  private void galleryAddPic(File image, Intent intent) {
-//    Intent mediaScanIntent =  intent;//// new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-//    File f = new File(image.getPath());
-//    Log.i("FILE", "current photopath" + image.getPath());
-//    Uri contentUri = Uri.fromFile(f);
-//    mediaScanIntent.setData(contentUri);
-//    this.sendBroadcast(mediaScanIntent);
-//  }
-
-
 }
