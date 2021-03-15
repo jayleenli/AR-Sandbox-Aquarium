@@ -17,7 +17,7 @@ if (len(sys.argv) != 2):
 image_file = sys.argv[1]
 start_index_filename = 0
 # If in a subdirectory
-if (image_file.index('/') >= 0):
+if (image_file.find('/') >= 0):
 	start_index_filename = image_file.rfind('/')+1
 object_name = image_file[start_index_filename:image_file.index('.')]
 print("PROGRESS: image loaded, object name =", object_name)
